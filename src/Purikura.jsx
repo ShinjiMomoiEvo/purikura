@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import Select from 'react-select'
+// import Select from 'react-select'
 import { Uploader } from "uploader"; // Installed by "react-uploader".
 import { UploadButton } from "react-uploader";
 import {
@@ -11,9 +11,17 @@ import {
     Input,
     FormControl,
     InputLabel,
+    Select,
+    MenuItem
 } from "@mui/material";
 
-const stamps = [{ value: "⭐", label: "⭐" }, { value: "❤️", label: "❤️" }, { value: "😊", label: "😊" }, { value: "🔥", label: "🔥" }, { value: "🎉", label: "🎉" }];
+import data from '@emoji-mart/data'
+import Picker from '@emoji-mart/react'
+
+const stamps = [
+    { value: "⭐", label: "Star" }, { value: "❤️", label: "Heart" }, { value: "😊", label: "Smile" }, { value: "🔥", label: "Fire" }, { value: "🎉", label: "Party" },
+    // Add more stamps or try emoji-mart for a wider selection
+];
 
 export default function PhotoBooth() {
     const canvasRef = useRef(null);
@@ -30,9 +38,12 @@ export default function PhotoBooth() {
     const [brushSize, setBrushSize] = useState(5);
     const [texts, setTexts] = useState([]);
     const [textInput, setTextInput] = useState("");
+    const [pickerOpen, setPickerOpen] = useState(false);
+
 
     // Load image to canvas when image changes
     useEffect(() => {
+        console.log("selectedStamp:", selectedStamp);
         if (!image) return;
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
@@ -80,7 +91,7 @@ export default function PhotoBooth() {
             redrawTexts(ctx);
         };
         img.src = image;
-    }, [image, texts]);
+    }, [image, texts, selectedStamp]);
 
     // function buildFilterString() {
     //     let filterStr = "";
@@ -125,7 +136,6 @@ export default function PhotoBooth() {
             ctx.font = "40px serif";
             ctx.fillText(selectedStamp, pos.x, pos.y);
 
-            // Optionally, save this stamp for redraw later:
             setStampsDrawn(prev => [...prev, { emoji: selectedStamp, x: pos.x, y: pos.y }]);
         }
     }
@@ -188,15 +198,6 @@ export default function PhotoBooth() {
         link.click();
     }
 
-    function selectStamp(emoji) {
-        setSelectedStamp(emoji);
-        setAction("stamp");
-    }
-    
-    function handleFileChange() {
-        
-    }
-
     const uploader = Uploader({
         apiKey: "free" // Get production API keys from Bytescale
     });
@@ -209,15 +210,6 @@ export default function PhotoBooth() {
                 <Typography variant="h4" gutterBottom>
                     Purikura
                 </Typography>
-
-                {/* Camera capture input */}
-                <Box sx={{ mb: 2 }}>
-                    <Input
-                    type="file"
-                    inputProps={{ accept: "image/*", capture: "environment" }}
-                    onChange={handleFileChange}
-                    />
-                </Box>
 
                 {/* Upload button */}
                 <Box sx={{ mb: 2 }}>
@@ -256,41 +248,37 @@ export default function PhotoBooth() {
                 />
 
                 {/* Drawing controls */}
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
+                <Box onClick={() => setAction("draw")} sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
                     <Button variant="contained" onClick={() => setAction("draw")}>
-                    Draw
+                        Draw
                     </Button>
 
-                    <InputLabel shrink>Draw Color</InputLabel>
                     <Input
-                    type="color"
-                    value={brushColor}
-                    onChange={(e) => setBrushColor(e.target.value)}
-                    sx={{ width: 60 }}
+                        type="color"
+                        value={brushColor}
+                        onChange={(e) => setBrushColor(e.target.value)}
+                        sx={{ width: 60 }}
                     />
 
-                    <InputLabel shrink>Brush Size</InputLabel>
                     <Slider
-                    min={1}
-                    max={20}
-                    value={brushSize}
-                    onChange={(e, val) => setBrushSize(val)}
-                    sx={{ width: 150 }}
+                        min={1}
+                        max={20}
+                        value={brushSize}
+                        onChange={(e, val) => setBrushSize(val)}
+                        sx={{ width: 150 }}
                     />
                 </Box>
 
                 {/* Text input */}
                     <Box sx={{ mb: 3, flexGrow: 1 }}>
-                        <Typography variant="body2" sx={{ mt: 1, textAlign: "left" }}>
-                            Add Text
-                        </Typography>
                         <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
                             <TextField
-                            placeholder="Enter text"
-                            value={textInput}
-                            onChange={(e) => setTextInput(e.target.value)}
-                            size="small"
-                            sx={{ flexGrow: 2 }}
+                                label="Type your text"
+                                placeholder="Enter text"
+                                value={textInput}
+                                onChange={(e) => setTextInput(e.target.value)}
+                                size="small"
+                                sx={{ flexGrow: 2 }}
                             />
                             <Button variant="contained" onClick={addText}>
                             Add Text
@@ -300,17 +288,26 @@ export default function PhotoBooth() {
 
                     {/* Emoji/stamp select */}
                     <Box sx={{ mb: 3, flexGrow: 1 }}>
-                        <Typography variant="body2" sx={{ mt: 1, textAlign: "left" }}>
-                            Stamps
-                        </Typography>
-                        <FormControl fullWidth>
-                        <Select
-                            options={stamps}
-                            onChange={(selectedOption) => {
-                                if (selectedOption) selectStamp(selectedOption.value);
-                            }}
-                        />
-                        </FormControl>
+                        <Button onClick={() => setPickerOpen(!pickerOpen)} >Add Emoji</Button>
+                        {/* <FormControl fullWidth>
+                            <InputLabel id="stamp-select-label">Choose a stamp</InputLabel>
+                            <Select
+                                labelId="stamp-select-label"
+                                value={selectedStamp || ""}
+                                label="Choose a stamp"
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setSelectedStamp(value);
+                                    setAction("stamp");
+                                }}
+                            >
+                                {stamps.map((stamp) => (
+                                    <MenuItem key={stamp.value} value={stamp.value}>
+                                        {stamp.value}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl> */}
                     </Box>
 
                 {/* Action buttons */}
@@ -322,7 +319,19 @@ export default function PhotoBooth() {
                         Reset
                     </Button>
                 </Box>
-                </Box>
+                
+                {pickerOpen && (
+                    <Picker
+                        data={data}
+                        onEmojiSelect={(emoji) => {
+                            setSelectedStamp(emoji.native);  // emoji.native = actual emoji char like "🔥"
+                            setPickerOpen(false);       // close picker after selection
+                            setAction("stamp");
+                        }}
+                    />
+                )}
+                
+            </Box>
         </>
     );
 }
