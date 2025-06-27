@@ -30,7 +30,6 @@ export default function PhotoBooth() {
     const [brushSize, setBrushSize] = useState(5);
     const [texts, setTexts] = useState([]);
     const [textInput, setTextInput] = useState("");
-    // const [filters, setFilters] = useState({ grayscale: false, sepia: false, invert: false });
 
     // Load image to canvas when image changes
     useEffect(() => {
@@ -244,6 +243,7 @@ export default function PhotoBooth() {
                         cursor: "crosshair",
                         maxWidth: "100%",
                         display: "block",
+                        touchAction: 'none',
                         mb: 3,
                     }}
                     onMouseDown={handlePointerDown}
@@ -305,22 +305,21 @@ export default function PhotoBooth() {
                         </Typography>
                         <FormControl fullWidth>
                         <Select
-                        
                             options={stamps}
                             onChange={(selectedOption) => {
-                            if (selectedOption) selectStamp(selectedOption.value);
+                                if (selectedOption) selectStamp(selectedOption.value);
                             }}
                         />
                         </FormControl>
                     </Box>
 
                 {/* Action buttons */}
-                <Box sx={{ display: "flex", gap: 2 }}>
+                <Box sx={{ display: "flex", gap: 2, justifyContent: "space-around" }}>
                     <Button variant="outlined" color="success" onClick={downloadImage}>
-                    Download Image
+                        Download Image
                     </Button>
                     <Button variant="outlined" color="error" onClick={resetCanvas}>
-                    Reset
+                        Reset
                     </Button>
                 </Box>
                 </Box>
