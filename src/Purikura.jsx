@@ -49,20 +49,15 @@ export default function PhotoBooth() {
         const ctx = canvas.getContext("2d");
         const img = new Image();
         img.crossOrigin = "anonymous";
-        const maxWidth = Math.min(window.innerWidth, 800);
-        const maxHeight = Math.min(window.innerHeight, 600);
+
+        const rect = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+
+        // Set actual canvas size based on DPR
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.scale(dpr, dpr); // Scale the context
         img.onload = () => {
-            let { width, height } = img;
-
-            if (width > maxWidth || height > maxHeight) {
-                const ratio = Math.min(maxWidth / width, maxHeight / height);
-                width = width * ratio;
-                height = height * ratio;
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-
             ctx.clearRect(0, 0, width, height);
             // ctx.filter = buildFilterString();
             ctx.drawImage(img, 0, 0, width, height);
@@ -167,6 +162,7 @@ export default function PhotoBooth() {
         setAction(null);
         setImage(null)
         setDrawings([]);
+        setStampsDrawn([]);
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -257,7 +253,7 @@ export default function PhotoBooth() {
                         type="color"
                         value={brushColor}
                         onChange={(e) => setBrushColor(e.target.value)}
-                        sx={{ width: 60 }}
+                        sx={{ width: 20 }}
                     />
 
                     <Slider
@@ -285,39 +281,11 @@ export default function PhotoBooth() {
                             </Button>
                         </Box>
                     </Box>
-
-                    {/* Emoji/stamp select */}
-                    <Box sx={{ mb: 3, flexGrow: 1 }}>
-                        <Button onClick={() => setPickerOpen(!pickerOpen)} >Add Emoji</Button>
-                        {/* <FormControl fullWidth>
-                            <InputLabel id="stamp-select-label">Choose a stamp</InputLabel>
-                            <Select
-                                labelId="stamp-select-label"
-                                value={selectedStamp || ""}
-                                label="Choose a stamp"
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    setSelectedStamp(value);
-                                    setAction("stamp");
-                                }}
-                            >
-                                {stamps.map((stamp) => (
-                                    <MenuItem key={stamp.value} value={stamp.value}>
-                                        {stamp.value}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl> */}
-                    </Box>
-
                 {/* Action buttons */}
                 <Box sx={{ display: "flex", gap: 2, justifyContent: "space-around" }}>
-                    <Button variant="outlined" color="success" onClick={downloadImage}>
-                        Download Image
-                    </Button>
-                    <Button variant="outlined" color="error" onClick={resetCanvas}>
-                        Reset
-                    </Button>
+                    <Button variant="contained" onClick={() => setPickerOpen(!pickerOpen)} >Add Emoji</Button>
+                    <Button variant="outlined" color="success" onClick={downloadImage}>Download Image</Button>
+                    <Button variant="outlined" color="error" onClick={resetCanvas}>Reset</Button>
                 </Box>
                 
                 {pickerOpen && (
