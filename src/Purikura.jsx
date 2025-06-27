@@ -1,6 +1,5 @@
-import React, { useRef, useState, useEffect } from "react";
-// import Select from 'react-select'
-import { Uploader } from "uploader"; // Installed by "react-uploader".
+import { useRef, useState, useEffect } from "react";
+import { Uploader } from "uploader";
 import { UploadButton } from "react-uploader";
 import IconButton from '@mui/material/IconButton';
 import data from '@emoji-mart/data'
@@ -8,11 +7,6 @@ import Picker from '@emoji-mart/react'
 import { Box, Button, Typography, TextField, Slider, Input } from "@mui/material";
 import BrushIcon from '@mui/icons-material/Brush';
 import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
-
-const stamps = [
-    { value: "⭐", label: "Star" }, { value: "❤️", label: "Heart" }, { value: "😊", label: "Smile" }, { value: "🔥", label: "Fire" }, { value: "🎉", label: "Party" },
-    // Add more stamps or try emoji-mart for a wider selection
-];
 
 export default function PhotoBooth() {
     const canvasRef = useRef(null);
@@ -22,6 +16,7 @@ export default function PhotoBooth() {
     const [stampsDrawn, setStampsDrawn] = useState([]);
     const [action, setAction] = useState(null);
     const [selectedStamp, setSelectedStamp] = useState(null);
+    const [textToPlace, setTextToPlace] = useState(null);
     const [image, setImage] = useState(null);
     const [isDrawing, setIsDrawing] = useState(false);
     const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
@@ -34,7 +29,6 @@ export default function PhotoBooth() {
 
     // Load image to canvas when image changes
     useEffect(() => {
-        console.log("selectedStamp:", selectedStamp);
         if (!image) return;
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
@@ -44,7 +38,7 @@ export default function PhotoBooth() {
         const rect = canvas.getBoundingClientRect();
         const dpr = window.devicePixelRatio || 1;
 
-        const availableWidth = window.innerWidth * 0.9; // 90% of viewport width, adjust as needed
+        const availableWidth = window.innerWidth * 0.9;
         const canvasWidth = availableWidth;
         const canvasHeight = (canvasWidth * 4) / 3;
 
@@ -78,6 +72,7 @@ export default function PhotoBooth() {
         }
 
         ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+        
         // Redraw drawings
         drawings.forEach(({ from, to, color, size }) => {
             ctx.strokeStyle = color;
@@ -99,26 +94,7 @@ export default function PhotoBooth() {
         redrawTexts(ctx);
     };
         img.src = image;
-    }, [image, texts, selectedStamp]);
-
-    // function buildFilterString() {
-    //     let filterStr = "";
-    //     if (filters.grayscale) filterStr += "grayscale(100%) ";
-    //     if (filters.sepia) filterStr += "sepia(100%) ";
-    //     if (filters.invert) filterStr += "invert(100%) ";
-    //     return filterStr.trim();
-    // }
-
-    function redrawTexts(ctx) {
-        texts.forEach(({ text, x, y }) => {
-            ctx.font = "24px Arial";
-            ctx.fillStyle = "white";
-            ctx.strokeStyle = "black";
-            ctx.lineWidth = 2;
-            ctx.strokeText(text, x, y);
-            ctx.fillText(text, x, y);
-        });
-    }
+    }, [image, texts, selectedStamp]);    
 
     // Drawing handlers
     function getPointerPos(e) {
@@ -145,6 +121,11 @@ export default function PhotoBooth() {
             ctx.fillText(selectedStamp, pos.x, pos.y);
 
             setStampsDrawn(prev => [...prev, { emoji: selectedStamp, x: pos.x, y: pos.y }]);
+        } else if (action === "text" && textToPlace) {
+            setTexts(prev => [...prev, { text: textToPlace, x: pos.x, y: pos.y }]);
+            setTextToPlace(null);
+            setAction(null);
+            return;
         }
     }
 
@@ -189,6 +170,26 @@ export default function PhotoBooth() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 
+    function redrawTexts(ctx) {
+        texts.forEach(({ text, x, y }) => {
+            ctx.font = "24px Arial";
+            ctx.fillStyle = "white";
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 2;
+            ctx.strokeText(text, x, y);
+            ctx.fillText(text, x, y);
+        });
+    }
+
+    // Add text to canvas (position is fixed center for simplicity)
+    function addText() {
+        if (!textInput.trim()) return;
+
+        setAction("text");
+        setTextToPlace(textInput.trim());
+        setTextInput("");
+    }
+
     // Upload image
     function handleUpload(file) {
         if (!file || !file.fileUrl) return;
@@ -196,14 +197,6 @@ export default function PhotoBooth() {
         const url = file.fileUrl;
         setImage(url);
         setTexts([]);
-    }
-
-    // Add text to canvas (position is fixed center for simplicity)
-    function addText() {
-        if (!textInput.trim()) return;
-        const canvas = canvasRef.current;
-        setTexts([...texts, { text: textInput.trim(), x: canvas.width / 2 - 50, y: canvas.height / 2 }]);
-        setTextInput("");
     }
 
     // Download image
@@ -237,100 +230,108 @@ export default function PhotoBooth() {
                     >
                     {({ onClick }) => (
                         <Button variant="outlined" onClick={onClick}>
-                        Upload a file...
+                            Upload a file...
                         </Button>
                     )}
                     </UploadButton>
                 </Box>
 
-                {/* Canvas */}
-                <Box
-                    component="canvas"
-                    ref={canvasRef}
-                    sx={{
-                        border: "1px solid #ccc",
-                        cursor: "crosshair",
-                        maxWidth: "100%",
-                        display: "block",
-                        touchAction: 'none',
-                        mb: 3,
-                    }}
-                    onMouseDown={handlePointerDown}
-                    onMouseMove={handlePointerMove}
-                    onMouseUp={handlePointerUp}
-                    onMouseLeave={handlePointerUp}
-                    onTouchStart={handlePointerDown}
-                    onTouchMove={handlePointerMove}
-                    onTouchEnd={handlePointerUp}
-                />
-
-                {/* Drawing controls */}
-                <Box onClick={() => setAction("draw")} sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
-                    <IconButton onClick={() => setAction("draw")} color="primary">
-                        <BrushIcon />
-                    </IconButton>
-
-                    <Input
-                        type="color"
-                        value={brushColor}
-                        onChange={(e) => setBrushColor(e.target.value)}
-                        sx={{ width: 20 }}
-                    />
-
-                    <Slider
-                        min={1}
-                        max={20}
-                        value={brushSize}
-                        onChange={(e, val) => setBrushSize(val)}
-                        sx={{ width: 150 }}
-                    />
-                </Box>
-
-                {/* Text input */}
-                    <Box sx={{ mb: 3, flexGrow: 1 }}>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
-                            <IconButton onClick={() => setPickerOpen(!pickerOpen)} color="primary">
-                                <EmojiEmotionsIcon />
-                            </IconButton>
-                            <TextField
-                                label="Type your text"
-                                placeholder="Enter text"
-                                value={textInput}
-                                onChange={(e) => setTextInput(e.target.value)}
-                                size="small"
-                                sx={{ flexGrow: 2 }}
-                            />
-                            <Button variant="contained" onClick={addText}>
-                            Add Text
-                            </Button>
-                        </Box>
-                    </Box>
-                {/* Action buttons */}
-                <Box sx={{ display: "flex", gap: 2, justifyContent: "space-around" }}>
-                    
-                    <Button variant="contained" onClick={() => setPickerOpen(!pickerOpen)} >Add Emoji</Button>
-                    <Button variant="outlined" color="success" onClick={downloadImage}>Download Image</Button>
-                    <Button variant="outlined" color="error" onClick={resetCanvas}>Reset</Button>
-                </Box>
-                
-                {pickerOpen && (
-                    <Box style={{ 
-                        position: "fixed",
-                        top: "50%",
-                        left: "50%",
-                        transform: "translate(-50%, -50%)",
-                        zIndex: 1000 
-                    }}>
-                        <Picker
-                            data={data}
-                            onEmojiSelect={(emoji) => {
-                                setSelectedStamp(emoji.native);
-                                setPickerOpen(false);
-                                setAction("stamp");
+                {image && (
+                    <>
+                        {/* Canvas */}
+                        <Box
+                            component="canvas"
+                            ref={canvasRef}
+                            sx={{
+                                border: "1px solid #ccc",
+                                cursor: "crosshair",
+                                maxWidth: "100%",
+                                display: "block",
+                                touchAction: 'none',
+                                mb: 3,
                             }}
+                            onMouseDown={handlePointerDown}
+                            onMouseMove={handlePointerMove}
+                            onMouseUp={handlePointerUp}
+                            onMouseLeave={handlePointerUp}
+                            onTouchStart={handlePointerDown}
+                            onTouchMove={handlePointerMove}
+                            onTouchEnd={handlePointerUp}
                         />
-                    </Box>
+
+                        {/* Drawing controls */}
+                        <Box onClick={() => setAction("draw")} sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
+                            <IconButton onClick={() => setAction("draw")} color="primary">
+                                <BrushIcon />
+                            </IconButton>
+
+                            <Input
+                                type="color"
+                                value={brushColor}
+                                onChange={(e) => setBrushColor(e.target.value)}
+                                sx={{ width: 20 }}
+                            />
+
+                            <Slider
+                                min={1}
+                                max={20}
+                                value={brushSize}
+                                onChange={(e, val) => setBrushSize(val)}
+                                sx={{ width: 150 }}
+                            />
+                        </Box>
+
+                        {/* Text input */}
+                            <Box sx={{ mb: 3, flexGrow: 1 }}>
+                                <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
+                                    <IconButton onClick={() => setPickerOpen(!pickerOpen)} color="primary">
+                                        <EmojiEmotionsIcon />
+                                    </IconButton>
+                                    <TextField
+                                        label="Type your text"
+                                        placeholder="Enter text"
+                                        value={textInput}
+                                        onChange={(e) => setTextInput(e.target.value)}
+                                        size="small"
+                                        sx={{ flexGrow: 2 }}
+                                    />
+                                    <Button variant="contained" onClick={addText}>
+                                        Add Text
+                                    </Button>
+                                </Box>
+                            </Box>
+                            {action === "text" && textToPlace && (
+                                <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                                    Tap anywhere on the canvas to place your text.
+                                </Typography>
+                            )}
+                        {/* Action buttons */}
+                        <Box sx={{ display: "flex", gap: 2, justifyContent: "space-around" }}>
+                            <Button variant="outlined" color="success" onClick={downloadImage}>Download Image</Button>
+                            <Button variant="outlined" color="error" onClick={resetCanvas}>Reset</Button>
+                        </Box>
+                        
+                        {pickerOpen && (
+                            <Box style={{ 
+                                position: "fixed",
+                                top: "50%",
+                                left: "50%",
+                                transform: "translate(-50%, -50%)",
+                                zIndex: 1000 
+                            }}>
+                                <Picker
+                                    data={data}
+                                    onEmojiSelect={(emoji) => {
+                                        setSelectedStamp(emoji.native);
+                                        setPickerOpen(false);
+                                        setAction("stamp");
+                                    }}
+                                />
+                            </Box>
+                        )}
+                    </>
                 )}
+                
                 
             </Box>
         </>
