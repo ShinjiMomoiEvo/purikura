@@ -162,6 +162,48 @@ export default function PhotoBooth() {
         setIsDrawing(false);
     }
 
+    function getTouchPos(touchEvent) {
+        const rect = canvasRef.current.getBoundingClientRect();
+        const touch = touchEvent.touches[0];
+        return {
+            x: touch.clientX - rect.left,
+            y: touch.clientY - rect.top,
+        };
+        }
+
+        function handleTouchStart(e) {
+            e.preventDefault(); // prevent scrolling
+            if (action === "draw") {
+                setIsDrawing(true);
+                setLastPos(getTouchPos(e));
+            }
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault(); // prevent scrolling
+            if (!isDrawing) return;
+
+            const canvas = canvasRef.current;
+            const ctx = canvas.getContext("2d");
+            const currentPos = getTouchPos(e);
+
+            ctx.strokeStyle = brushColor;
+            ctx.lineWidth = brushSize;
+            ctx.lineCap = "round";
+
+            ctx.beginPath();
+            ctx.moveTo(lastPos.x, lastPos.y);
+            ctx.lineTo(currentPos.x, currentPos.y);
+            ctx.stroke();
+
+            setLastPos(currentPos);
+        }
+
+        function handleTouchEnd(e) {
+            e.preventDefault();
+            setIsDrawing(false);
+        }
+
     // Upload image
     function handleUpload(file) {
         if (!file || !file.fileUrl) return;
@@ -249,6 +291,9 @@ export default function PhotoBooth() {
                     onMouseMove={handleMouseMove}
                     onMouseUp={handleMouseUp}
                     onMouseLeave={handleMouseUp}
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
                 />
 
                 {/* Drawing controls */}
