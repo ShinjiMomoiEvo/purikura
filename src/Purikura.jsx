@@ -2,21 +2,12 @@ import React, { useRef, useState, useEffect } from "react";
 // import Select from 'react-select'
 import { Uploader } from "uploader"; // Installed by "react-uploader".
 import { UploadButton } from "react-uploader";
-import {
-    Box,
-    Button,
-    Typography,
-    TextField,
-    Slider,
-    Input,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem
-} from "@mui/material";
-
+import IconButton from '@mui/material/IconButton';
 import data from '@emoji-mart/data'
 import Picker from '@emoji-mart/react'
+import { Box, Button, Typography, TextField, Slider, Input } from "@mui/material";
+import BrushIcon from '@mui/icons-material/Brush';
+import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
 
 const stamps = [
     { value: "⭐", label: "Star" }, { value: "❤️", label: "Heart" }, { value: "😊", label: "Smile" }, { value: "🔥", label: "Fire" }, { value: "🎉", label: "Party" },
@@ -275,9 +266,9 @@ export default function PhotoBooth() {
 
                 {/* Drawing controls */}
                 <Box onClick={() => setAction("draw")} sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
-                    <Button variant="contained" onClick={() => setAction("draw")}>
-                        Draw
-                    </Button>
+                    <IconButton onClick={() => setAction("draw")} color="primary">
+                        <BrushIcon />
+                    </IconButton>
 
                     <Input
                         type="color"
@@ -298,6 +289,9 @@ export default function PhotoBooth() {
                 {/* Text input */}
                     <Box sx={{ mb: 3, flexGrow: 1 }}>
                         <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
+                            <IconButton onClick={() => setPickerOpen(!pickerOpen)} color="primary">
+                                <EmojiEmotionsIcon />
+                            </IconButton>
                             <TextField
                                 label="Type your text"
                                 placeholder="Enter text"
@@ -313,6 +307,7 @@ export default function PhotoBooth() {
                     </Box>
                 {/* Action buttons */}
                 <Box sx={{ display: "flex", gap: 2, justifyContent: "space-around" }}>
+                    
                     <Button variant="contained" onClick={() => setPickerOpen(!pickerOpen)} >Add Emoji</Button>
                     <Button variant="outlined" color="success" onClick={downloadImage}>Download Image</Button>
                     <Button variant="outlined" color="error" onClick={resetCanvas}>Reset</Button>
