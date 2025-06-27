@@ -58,12 +58,9 @@ export default function PhotoBooth() {
         canvas.height = rect.height * dpr;
         ctx.scale(dpr, dpr); // Scale the context
         img.onload = () => {
-            ctx.clearRect(0, 0, width, height);
             // ctx.filter = buildFilterString();
-            ctx.drawImage(img, 0, 0, width, height);
-
-            // Reset filter for overlays
-            // ctx.filter = "none";
+            ctx.clearRect(0, 0, rect.width, rect.height);
+            ctx.drawImage(img, 0, 0, rect.width, rect.height);
 
             // Redraw drawings
             drawings.forEach(({ from, to, color, size }) => {
