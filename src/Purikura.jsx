@@ -87,8 +87,25 @@ export default function PhotoBooth() {
         }
 
         ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+        // Redraw drawings
+        drawings.forEach(({ from, to, color, size }) => {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = size;
+            ctx.lineCap = "round";
+            ctx.beginPath();
+            ctx.moveTo(from.x, from.y);
+            ctx.lineTo(to.x, to.y);
+            ctx.stroke();
+        });
 
-        // redraw drawings, stamps, texts ...
+        // Redraw stamps
+        stampsDrawn.forEach(({ emoji, x, y }) => {
+            ctx.font = "40px serif";
+            ctx.fillText(emoji, x, y);
+        });
+
+        // Redraw texts
+        redrawTexts(ctx);
     };
         img.src = image;
     }, [image, texts, selectedStamp]);
