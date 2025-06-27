@@ -321,14 +321,22 @@ export default function PhotoBooth() {
                 </Box>
                 
                 {pickerOpen && (
-                    <Picker
-                        data={data}
-                        onEmojiSelect={(emoji) => {
-                            setSelectedStamp(emoji.native);  // emoji.native = actual emoji char like "🔥"
-                            setPickerOpen(false);       // close picker after selection
-                            setAction("stamp");
-                        }}
-                    />
+                    <Box style={{ 
+                        position: "fixed",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        zIndex: 1000 
+                    }}>
+                        <Picker
+                            data={data}
+                            onEmojiSelect={(emoji) => {
+                                setSelectedStamp(emoji.native);
+                                setPickerOpen(false);
+                                setAction("stamp");
+                            }}
+                        />
+                    </Box>
                 )}
                 
             </Box>
