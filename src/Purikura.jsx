@@ -103,40 +103,39 @@ export default function PhotoBooth() {
     }
 
     // Drawing handlers
-    function handleMouseDown(e) {
-        if (action === "draw") {
-            setIsDrawing(true);
-            const rect = canvasRef.current.getBoundingClientRect();
-            setLastPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-        } 
-        if(action === "stamp" && selectedStamp) {
-            const canvas = canvasRef.current;
-            const ctx = canvas.getContext("2d");
-            const rect = canvas.getBoundingClientRect();
-            const pos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-
-            ctx.font = "40px serif";
-            ctx.fillText(selectedStamp, pos.x, pos.y);
-
-            setStampsDrawn(s => [...s, { emoji: selectedStamp, x: pos.x, y: pos.y }]);
+    function getPointerPos(e) {
+        const rect = canvasRef.current.getBoundingClientRect();
+        if (e.touches) {
+            const touch = e.touches[0];
+            return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+        } else {
+            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
         }
     }
 
-    function resetCanvas() {
-        setAction(null);
-        setImage(null)
-        setDrawings([]);
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext("2d");
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    function handlePointerDown(e) {
+        e.preventDefault();
+        const pos = getPointerPos(e);
+
+        if (action === "draw") {
+            setIsDrawing(true);
+            setLastPos(pos);
+        } else if (action === "stamp" && selectedStamp) {
+            const canvas = canvasRef.current;
+            const ctx = canvas.getContext("2d");
+            ctx.font = "40px serif";
+            ctx.fillText(selectedStamp, pos.x, pos.y);
+
+            // Optionally, save this stamp for redraw later:
+            setStampsDrawn(prev => [...prev, { emoji: selectedStamp, x: pos.x, y: pos.y }]);
+        }
     }
 
-    function handleMouseMove(e) {
+    function handlePointerMove(e) {
+        e.preventDefault();
         if (!isDrawing) return;
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext("2d");
-        const rect = canvas.getBoundingClientRect();
-        const currentPos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        const ctx = canvasRef.current.getContext("2d");
+        const currentPos = getPointerPos(e);
 
         ctx.strokeStyle = brushColor;
         ctx.lineWidth = brushSize;
@@ -147,62 +146,22 @@ export default function PhotoBooth() {
         ctx.lineTo(currentPos.x, currentPos.y);
         ctx.stroke();
 
-        // Save the stroke
-        setDrawings(d => [...d, {
-            from: { ...lastPos },
-            to: { ...currentPos },
-            color: brushColor,
-            size: brushSize
-        }]);
-
         setLastPos(currentPos);
     }
 
-    function handleMouseUp() {
+    function handlePointerUp(e) {
+        e.preventDefault();
         setIsDrawing(false);
     }
 
-    function getTouchPos(touchEvent) {
-        const rect = canvasRef.current.getBoundingClientRect();
-        const touch = touchEvent.touches[0];
-        return {
-            x: touch.clientX - rect.left,
-            y: touch.clientY - rect.top,
-        };
-        }
-
-        function handleTouchStart(e) {
-            e.preventDefault(); // prevent scrolling
-            if (action === "draw") {
-                setIsDrawing(true);
-                setLastPos(getTouchPos(e));
-            }
-        }
-
-        function handleTouchMove(e) {
-            e.preventDefault(); // prevent scrolling
-            if (!isDrawing) return;
-
-            const canvas = canvasRef.current;
-            const ctx = canvas.getContext("2d");
-            const currentPos = getTouchPos(e);
-
-            ctx.strokeStyle = brushColor;
-            ctx.lineWidth = brushSize;
-            ctx.lineCap = "round";
-
-            ctx.beginPath();
-            ctx.moveTo(lastPos.x, lastPos.y);
-            ctx.lineTo(currentPos.x, currentPos.y);
-            ctx.stroke();
-
-            setLastPos(currentPos);
-        }
-
-        function handleTouchEnd(e) {
-            e.preventDefault();
-            setIsDrawing(false);
-        }
+    function resetCanvas() {
+        setAction(null);
+        setImage(null)
+        setDrawings([]);
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
 
     // Upload image
     function handleUpload(file) {
@@ -287,13 +246,13 @@ export default function PhotoBooth() {
                         display: "block",
                         mb: 3,
                     }}
-                    onMouseDown={handleMouseDown}
-                    onMouseMove={handleMouseMove}
-                    onMouseUp={handleMouseUp}
-                    onMouseLeave={handleMouseUp}
-                    onTouchStart={handleTouchStart}
-                    onTouchMove={handleTouchMove}
-                    onTouchEnd={handleTouchEnd}
+                    onMouseDown={handlePointerDown}
+                    onMouseMove={handlePointerMove}
+                    onMouseUp={handlePointerUp}
+                    onMouseLeave={handlePointerUp}
+                    onTouchStart={handlePointerDown}
+                    onTouchMove={handlePointerMove}
+                    onTouchEnd={handlePointerUp}
                 />
 
                 {/* Drawing controls */}
