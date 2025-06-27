@@ -172,6 +172,14 @@ export default function PhotoBooth() {
         ctx.lineTo(currentPos.x, currentPos.y);
         ctx.stroke();
 
+        // Save the stroke
+        setDrawings(d => [...d, {
+            from: { ...lastPos },
+            to: { ...currentPos },
+            color: brushColor,
+            size: brushSize
+        }]);
+
         setLastPos(currentPos);
     }
 
