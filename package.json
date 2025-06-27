@@ -10,8 +10,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "@emoji-mart/data": "^1.2.1",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^7.1.2",
+    "emoji-mart": "^5.6.0",
+    "emoji.json": "^15.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-select": "^5.10.1",
+    "react-uploader": "^3.43.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
