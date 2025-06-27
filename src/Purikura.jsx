@@ -296,7 +296,7 @@ export default function PhotoBooth() {
                                         sx={{ flexGrow: 2 }}
                                     />
                                     <Button variant="contained" onClick={addText}>
-                                        Add Text
+                                        Add
                                     </Button>
                                 </Box>
                             </Box>
