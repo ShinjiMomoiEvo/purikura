@@ -53,35 +53,43 @@ export default function PhotoBooth() {
         const rect = canvas.getBoundingClientRect();
         const dpr = window.devicePixelRatio || 1;
 
-        // Set actual canvas size based on DPR
-        canvas.width = rect.width * dpr;
-        canvas.height = rect.height * dpr;
+        const availableWidth = window.innerWidth * 0.9; // 90% of viewport width, adjust as needed
+        const canvasWidth = availableWidth;
+        const canvasHeight = (canvasWidth * 4) / 3;
+
+        // Set CSS size
+        canvas.style.width = `${canvasWidth}px`;
+        canvas.style.height = `${canvasHeight}px`;
+
+        // Set internal pixel size for sharpness
+        canvas.width = canvasWidth * dpr;
+        canvas.height = canvasHeight * dpr;
         ctx.scale(dpr, dpr); // Scale the context
+
         img.onload = () => {
-            // ctx.filter = buildFilterString();
-            ctx.clearRect(0, 0, rect.width, rect.height);
-            ctx.drawImage(img, 0, 0, rect.width, rect.height);
+        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-            // Redraw drawings
-            drawings.forEach(({ from, to, color, size }) => {
-                ctx.strokeStyle = color;
-                ctx.lineWidth = size;
-                ctx.lineCap = "round";
-                ctx.beginPath();
-                ctx.moveTo(from.x, from.y);
-                ctx.lineTo(to.x, to.y);
-                ctx.stroke();
-            });
+        const imgRatio = img.width / img.height;
+        const canvasRatio = canvasWidth / canvasHeight;
 
-            // Redraw stamps
-            stampsDrawn.forEach(({ emoji, x, y }) => {
-                ctx.font = "40px serif";
-                ctx.fillText(emoji, x, y);
-            });
+        let drawWidth, drawHeight, offsetX, offsetY;
 
-            // Redraw texts
-            redrawTexts(ctx);
-        };
+        if (imgRatio > canvasRatio) {
+            drawWidth = canvasWidth;
+            drawHeight = canvasWidth / imgRatio;
+            offsetX = 0;
+            offsetY = (canvasHeight - drawHeight) / 2;
+        } else {
+            drawHeight = canvasHeight;
+            drawWidth = canvasHeight * imgRatio;
+            offsetX = (canvasWidth - drawWidth) / 2;
+            offsetY = 0;
+        }
+
+        ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+
+        // redraw drawings, stamps, texts ...
+    };
         img.src = image;
     }, [image, texts, selectedStamp]);
 
